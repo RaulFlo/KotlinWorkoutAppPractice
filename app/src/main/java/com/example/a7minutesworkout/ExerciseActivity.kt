@@ -1,5 +1,7 @@
 package com.example.a7minutesworkout
 
+import android.media.MediaPlayer
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -26,6 +28,8 @@ class ExerciseActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var currentExercisePosition = -1
 
     private var tts: TextToSpeech? = null
+    private var player: MediaPlayer? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +56,20 @@ class ExerciseActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun setupRestView() {
+
+        try {
+            val soundURI = Uri.parse(
+                "android.resource://" +
+                        "com.example.a7minutesworkout/" + R.raw.press_start
+            )
+            player = MediaPlayer.create(applicationContext, soundURI)
+            player?.isLooping = false
+            player?.start()
+
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+
         binding?.flRestView?.visibility = View.VISIBLE
         binding?.tvTitle?.visibility = View.VISIBLE
         binding?.tvExerciseName?.visibility = View.INVISIBLE
@@ -66,7 +84,9 @@ class ExerciseActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             restProgress = 0
         }
 
-        binding?.tvUpcomingExercise?.text = exerciseList!![currentExercisePosition +1].getName()
+
+
+        binding?.tvUpcomingExercise?.text = exerciseList!![currentExercisePosition + 1].getName()
 
         setRestProgressBar()
     }
@@ -126,20 +146,23 @@ class ExerciseActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             override fun onFinish() {
-               if(currentExercisePosition <exerciseList?.size!! -1 ){
-                   setupRestView()
-               }else{
-                   Toast.makeText(this@ExerciseActivity,
-                       "congrats finished",
-                       Toast.LENGTH_SHORT)
-                       .show()
-               }
+                if (currentExercisePosition < exerciseList?.size!! - 1) {
+                    setupRestView()
+                } else {
+                    Toast.makeText(
+                        this@ExerciseActivity,
+                        "congrats finished",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
+                }
             }
 
         }.start()
 
     }
 
+    //to stop memory leaks
     override fun onDestroy() {
         super.onDestroy()
 
@@ -157,6 +180,12 @@ class ExerciseActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             exerciseTimer?.cancel()
             exerciseProgress = 0
         }
+
+        if(player != null){
+            player!!.stop()
+
+        }
+
         binding = null
     }
 
